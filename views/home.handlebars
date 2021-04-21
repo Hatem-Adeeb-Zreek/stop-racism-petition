@@ -1,0 +1,19 @@
+<div class="home">
+    <h1>Please sign up for my petition!</h1>
+     <div class="container">  
+        <form method='POST'>
+             <input type='text' name='firstName' placeholder='First Name' autocomplete='off'>
+            <input type='text' name='lastName' placeholder='Last Name' autocomplete='off'>            
+            <div>
+                <input type="hidden" name="signeture">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                {{!-- maybe put the csrf in partial --}}
+                <canvas id="canvas"></canvas>
+            </div>
+            <button> submit </button>
+        </form>
+         {{#if unfilled}}
+            {{>par-unfilled}}
+        {{/if}}
+    </div>
+</div> 
