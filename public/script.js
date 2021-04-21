@@ -1,27 +1,47 @@
 const canvas = document.getElementById("canvas");
+let xAxis,
+    yAxis,
+    drawPing = null;
+
 if (canvas) {
     const context = canvas.getContext("2d");
     const signCanvas = document.querySelector('input[name="signeture"]');
     canvas.addEventListener("mousedown", (event) => {
-        let xAxis = event.clientX - canvas.offsetLeft;
-        let yAxis = event.clientY - canvas.offsetTop;
-        console.log("click x", xAxis);
-        console.log("click y", yAxis);
+        xAxis = event.clientX - canvas.offsetLeft;
+        yAxis = event.clientY - canvas.offsetTop;
+
+        drawStart();
+
+        if (!drawPing) {
+            drawPing = setInterval(draw, 1);
+        }
+    });
+
+    canvas.addEventListener("mousemove", (event) => {
+        xAxis = event.clientX - canvas.offsetLeft;
+        yAxis = event.clientY - canvas.offsetTop;
+    });
+
+    canvas.addEventListener("mouseup", () => {
+        drawEnd();
+    });
+
+    const drawStart = () => {
+        context.strokeStyle = "cornflowerblue";
+        context.lineCap = "round";
+        context.lineJoin = "round";
         context.beginPath();
         context.moveTo(xAxis, yAxis);
+    };
+    const draw = () => {
+        context.lineTo(xAxis, yAxis);
+        context.stroke();
+    };
 
-        canvas.addEventListener("mousemove", function draw(event) {
-            let xAxis = event.clientX - canvas.offsetLeft;
-            let yAxis = event.clientY - canvas.offsetTop;
-            console.log("position x", xAxis);
-            console.log("position y", yAxis);
-            context.lineTo(xAxis, yAxis);
-            context.stroke();
-
-            canvas.addEventListener("mouseup", () => {
-                canvas.removeEventListener("mousemove", draw);
-                signCanvas.value = canvas.toDataURL();
-            });
-        });
-    });
+    const drawEnd = () => {
+        clearInterval(drawPing);
+        drawPing = null;
+        context.closePath();
+        signCanvas.value = canvas.toDataURL();
+    };
 }

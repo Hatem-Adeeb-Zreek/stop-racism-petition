@@ -6,6 +6,12 @@ const cookieSession = require("cookie-session");
 const { COOKIE_SECRET } = require("./secrets.json");
 const csurf = require("csurf");
 
+// db.getTimestamp().then((result) => {
+//     console.log("result", result);
+// });
+
+// console.log("db.getTimestamp()", db.getTimestamp());
+
 //added global helpers-----------
 const hbSet = hb.create({
     helpers: {
@@ -31,6 +37,7 @@ app.use(
         extended: false,
     })
 );
+// prevent csurf  and clickjacking attack
 app.use(csurf());
 app.use(function (req, res, next) {
     res.locals.csrfToken = req.csrfToken();
@@ -50,23 +57,6 @@ app.get("/petition", (req, res) => {
         res.render("home");
     } else {
         res.redirect("/thankyou");
-    }
-});
-
-app.get("/signslist", (req, res) => {
-    const { signatureId } = req.session;
-    if (signatureId) {
-        db.getSigns()
-            .then(({ rows }) => {
-                res.render("signslist", {
-                    rows,
-                });
-            })
-            .catch((err) => {
-                console.log("error in /signerslist", err);
-            });
-    } else {
-        res.redirect("/petition");
     }
 });
 
@@ -100,6 +90,23 @@ app.get("/thankyou", (req, res) => {
                 });
             });
         });
+    } else {
+        res.redirect("/petition");
+    }
+});
+
+app.get("/signslist", (req, res) => {
+    const { signatureId } = req.session;
+    if (signatureId) {
+        db.getSigns()
+            .then(({ rows }) => {
+                res.render("signslist", {
+                    rows,
+                });
+            })
+            .catch((err) => {
+                console.log("error in /signslist", err);
+            });
     } else {
         res.redirect("/petition");
     }

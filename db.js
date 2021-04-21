@@ -5,6 +5,16 @@ module.exports.getSigns = () => {
     return db.query(`SELECT * FROM signetures`);
 };
 
+/*
+module.exports.getTimestamp = () => {
+    let date = db.query(`SELECT EXTRACT (DAY FROM created) FROM signatures`);
+    date += db.query(`SELECT EXTRACT (MONTH FROM created) FROM signatures`);
+    date += db.query(`SELECT EXTRACT (YEAR FROM created) FROM signatures`);
+    return date;
+};
+// return db.query(`SELECT EXTRACT (DAY FROM created) FROM signatures`);
+*/
+
 module.exports.countSigns = () => {
     return db.query(`SELECT COUNT(*) FROM signetures`);
 };
