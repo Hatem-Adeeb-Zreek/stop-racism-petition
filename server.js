@@ -3,6 +3,7 @@ const app = express();
 const db = require("./db");
 const hb = require("express-handlebars");
 const cookieSession = require("cookie-session");
+const { COOKIE_SECRET } = require("./secrets.json");
 const csurf = require("csurf");
 
 //added global helpers-----------
@@ -21,7 +22,7 @@ app.set("view engine", "handlebars");
 //~~~~~~~~~MIDDLEWARE
 app.use(
     cookieSession({
-        secret: `we need more cowbell!`,
+        secret: COOKIE_SECRET,
         maxAge: 1000 * 60 * 60 * 24 * 14,
     })
 );
