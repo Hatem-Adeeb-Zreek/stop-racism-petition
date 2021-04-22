@@ -2,3 +2,9 @@ node_modules
 .DS_Store
 package-lock.json
 secrets.json
+par.handlebars
+old-home.handlebars
+old-db.js
+old-petition.sql
+old-server.js
+
