@@ -1,0 +1,15 @@
+<div class="profile">
+    <h2>Please provide some personal information</h2>
+    <div class="container">            
+        <form method='POST'>
+            <input type='text' name='age' placeholder='Age' autocomplete='off'>
+            <input type='text' name='city' placeholder='City' autocomplete='off'>
+            <input type='text' name='url' placeholder='Website' autocomplete='off'>
+            {{>csrf}}
+            <button type="submit">submit</button>
+        </form>        
+         {{#if err}}
+            {{>errors}}
+        {{/if}}
+    </div>
+</div> 

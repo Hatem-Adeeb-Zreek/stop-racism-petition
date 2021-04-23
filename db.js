@@ -1,9 +1,9 @@
 const spicedPg = require("spiced-pg");
 const db = spicedPg("postgres:postgres:123456789@localhost:5432/petition");
 
-module.exports.getSigns = () => {
-    return db.query(`SELECT * FROM users`);
-};
+// module.exports.getSigns = () => {
+//     return db.query(`SELECT * FROM users`);
+// };
 
 module.exports.countSigns = () => {
     return db.query(`SELECT COUNT(*) FROM signetures`);
@@ -40,9 +40,30 @@ module.exports.createUser = (firstName, lastName, email, hashedPass) => {
     );
 };
 
+module.exports.addProfile = (age, city, url, userId) => {
+    return db.query(
+        `
+        INSERT INTO user_profiles (age, city, url, user_id)
+        VALUES ($1, $2, $3, $4)
+        `,
+        [age || null, city, url, userId]
+    );
+};
+
 module.exports.getPassByEmail = (inputEmail) => {
     return db.query(`SELECT * FROM users WHERE email=$1`, [inputEmail]);
     // return db.query(`SELECT * FROM users WHERE email=$1`, [inputEmail]);
+};
+
+module.exports.getSigns = () => {
+    return db.query(`
+    SELECT signetures.signeture, users.first_name, users.last_name, user_profiles.age, user_profiles.city, user_profiles.url    
+    FROM signetures
+    JOIN users
+    ON users.id = signetures.user_id
+    JOIN user_profiles
+    ON users.id = user_profiles.user_id;
+    `);
 };
 
 /*

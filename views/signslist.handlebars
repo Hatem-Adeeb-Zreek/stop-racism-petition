@@ -3,9 +3,22 @@
     <div class="container">
         <div>
             {{#rows}}
-                <h2>{{first_name}} {{last_name}}</h2>
-                 <p>at {{created}}</p>
-            {{/rows}}   
+                <h2>
+                    {{#if url}}
+                        <a href="{{url}}">{{first_name}} {{last_name}}</a>
+                    {{else}}
+                        <span>{{first_name}} {{last_name}}</span>
+                    {{/if}}
+
+                    {{#if age}}
+                       <span> | {{age}} |</span>                 
+                    {{/if}}
+
+                    {{#if city}}
+                          <a href="signeslist/{{city}}"> {{city}}</a>                   
+                    {{/if}}
+                </h2>
+            {{/rows}} 
         </div>
     </div>
 </div>

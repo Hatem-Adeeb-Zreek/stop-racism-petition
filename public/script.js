@@ -1,3 +1,5 @@
+const errModal = $(".errModal");
+const errModalBtn = $(".errModalBtn");
 const canvas = document.getElementById("canvas");
 let xAxis,
     yAxis,
@@ -45,3 +47,8 @@ if (canvas) {
         signCanvas.value = canvas.toDataURL();
     };
 }
+
+//visibility of modals
+errModalBtn.on("click", () => {
+    errModal.fadeOut(500);
+});
