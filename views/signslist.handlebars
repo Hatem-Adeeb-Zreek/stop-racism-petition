@@ -1,6 +1,6 @@
-<div class="signers">
-    <h1>who else signed my petition?</h1>
-    <div class="container">
+<div class="container">
+    <h1>Signers List</h1>
+    <div>
         <div>
             {{#rows}}
                 <h2>
@@ -11,11 +11,11 @@
                     {{/if}}
 
                     {{#if age}}
-                       <span> | {{age}} |</span>                 
+                       <span> | Age: {{age}} |</span>                 
                     {{/if}}
 
                     {{#if city}}
-                          <a href="signeslist/{{city}}"> {{city}}</a>                   
+                          <a href="signslist/{{city}}"> City: {{city}}</a>                   
                     {{/if}}
                 </h2>
             {{/rows}} 

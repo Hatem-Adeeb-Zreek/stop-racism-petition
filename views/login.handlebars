@@ -1,13 +1,12 @@
-<div class="login">
-    <h1>existing user log in</h1>
-    <div class="container">            
+<div class="container">
+    <div>            
         <form method='POST'>
             <input type='email' name='email' placeholder='Email Address' autocomplete='off'>
             <input type='password' name='password' placeholder='Password' autocomplete='off'>            
             {{>csrf}}
             <button type="submit">log in</button>
         </form>
-        <p>not yet registered? then please go ahead and <a href="/register">register</a></p>
+        <p>not yet registered? then please <a href="/register">register</a></p>
          {{#if err}}
             {{>errors}}
         {{/if}}

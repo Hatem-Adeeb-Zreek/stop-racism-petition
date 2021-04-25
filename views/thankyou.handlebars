@@ -1,15 +1,15 @@
-<div class="thankyou">
+<div class="container">
     {{#rows}}
     <h2>
-        thank you, {{firstName}} {{lastName}}, for signing my petition! 
+        Thanks {{first_name}} {{last_name}} for signing the petition
     </h2>
-    <p>with your signature below, you are a registered signer of my petition!</p>
+    <p>with your signature below, you are a registered signer of my petition</p>
     
      {{/rows}}    
      <img id="signeture" src="{{signeture}}" alt="signeture">
-    <div class="container">
-         <p>want to see the other {{numberOfSigns}} people who signed this petition?<br>
-        then click the below to find out...</p>
-        <a href="/signslist" class="myBtn">signs list</a>
+    <div>
+         <p>There Are {{numberOfSigns}} people who signed this petition<br>
+       Click To See The Signers List   <a href="/signslist" id="list">Signers List</a></p>
+       
     </div>
 </div> 

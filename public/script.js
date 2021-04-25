@@ -29,7 +29,7 @@ if (canvas) {
     });
 
     const drawStart = () => {
-        context.strokeStyle = "cornflowerblue";
+        context.strokeStyle = "black";
         context.lineCap = "round";
         context.lineJoin = "round";
         context.beginPath();
