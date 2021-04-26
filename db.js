@@ -1,5 +1,7 @@
-const spicedPg = require("spiced-pg");
-const db = spicedPg("postgres:postgres:123456789@localhost:5432/petition");
+// const spicedPg = require("spiced-pg");
+const db =
+    process.env.DATABASE_URL ||
+    "postgres:postgres:123456789@localhost:5432/petition";
 
 // module.exports.getSigns = () => {
 //     return db.query(`SELECT * FROM users`);

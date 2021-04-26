@@ -23,7 +23,7 @@ app.set("view engine", "handlebars");
 //~~~~~~~~~MIDDLEWARE
 app.use(
     cookieSession({
-        secret: COOKIE_SECRET,
+        secret: process.env.COOKIE_SECRET || COOKIE_SECRET,
         maxAge: 1000 * 60 * 60 * 24 * 14,
     })
 );
@@ -285,4 +285,6 @@ app.post("/profile", (req, res) => {
         });
 });
 
-app.listen(8080, () => console.log("petition SERVER at 8080..."));
+app.listen(process.env.PORT || 8080, () =>
+    console.log("petition SERVER at 8080...")
+);
