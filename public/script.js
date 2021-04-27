@@ -1,5 +1,5 @@
-const errModal = $(".errModal");
-const errModalBtn = $(".errModalBtn");
+const modal = $(".modal");
+const modalBtn = $(".modalBtn");
 const canvas = document.getElementById("canvas");
 let xAxis,
     yAxis,
@@ -49,6 +49,6 @@ if (canvas) {
 }
 
 //visibility of modals
-errModalBtn.on("click", () => {
-    errModal.fadeOut(500);
+modalBtn.on("click", () => {
+    modal.fadeOut(500);
 });

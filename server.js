@@ -3,7 +3,6 @@ const app = express();
 const db = require("./db");
 const hb = require("express-handlebars");
 const cookieSession = require("cookie-session");
-
 const csurf = require("csurf");
 const { hash, compare } = require("./bc");
 
@@ -89,6 +88,7 @@ app.post("/petition", (req, res) => {
             err:
                 "Oops! Looks like you still haven't signed my petition. You need to use the mouse to make your signature...",
             btn: "try again",
+            href: "javascript://",
         });
     }
 });
@@ -114,18 +114,21 @@ app.get("/thankyou", (req, res) => {
 });
 
 app.get("/signslist", (req, res) => {
-    const { userId } = req.session;
+    const { signed, userId } = req.session;
     if (userId) {
-        db.getSigns()
-            .then(({ rows }) => {
-                console.log("rows", rows);
-                res.render("signslist", {
-                    rows,
+        if (signed) {
+            db.getSigns()
+                .then(({ rows }) => {
+                    res.render("signslist", {
+                        rows,
+                    });
+                })
+                .catch((err) => {
+                    console.log("error in /signslist", err);
                 });
-            })
-            .catch((err) => {
-                console.log("error in /signslist", err);
-            });
+        } else {
+            res.redirect("/petition");
+        }
     } else {
         res.redirect("/register");
     }
@@ -149,13 +152,13 @@ app.post("/register", (req, res) => {
         password !== ""
     ) {
         //existing email validation
-        db.getPassByEmail(email)
+        db.getUserDataByEmail(email)
             .then((results) => {
                 if (results.rows.length == 0) {
                     //email not existing
                     hash(password)
                         .then((hashedPass) => {
-                            console.log("hashedPw", hashedPass);
+                            // console.log("hashedPw", hashedPass);
                             db.createUser(
                                 firstName,
                                 lastName,
@@ -188,10 +191,12 @@ app.post("/register", (req, res) => {
                     //of if block (email)
                     console.log("email has been already used");
                     res.render("register", {
-                        err: "email has been already used",
+                        message: "this email is already in use",
+                        btn: "try again",
+                        href: "javascript://",
                     });
                 }
-            }) //end of getPassByEmail()
+            }) //end of getUserDataByEmail()
             .catch((err) => {
                 console.log("error is POST /register checkEmail", err);
                 res.send(
@@ -202,8 +207,9 @@ app.post("/register", (req, res) => {
     } else {
         //of if block (firstName, lastName, email, password)
         res.render("register", {
-            err: "make sure your form is complete!",
+            message: "make sure your form is complete!",
             btn: "try again",
+            href: "javascript://",
         });
     }
 });
@@ -219,20 +225,33 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
     const { email, password } = req.body;
-    console.log("user input email: ", email, "user input password: ", password);
+    // console.log("user input email: ", email, "user input password: ", password);
     if (email !== "" && password !== "") {
-        db.getPassByEmail(email)
+        db.getUserDataByEmail(email)
             .then((results) => {
                 const hashedPass = results.rows[0].password;
                 compare(password, hashedPass)
                     .then((match) => {
                         if (match) {
                             req.session.userId = results.rows[0].id;
-                            res.redirect("/petition");
+                            db.getSigneture(req.session.userId)
+                                .then((results) => {
+                                    if (results.rows.length != 0) {
+                                        req.session.signed = true;
+                                    }
+                                })
+                                .catch((err) => {
+                                    console.log(
+                                        "error in POST /login getSigneture()",
+                                        err
+                                    );
+                                });
+                            res.redirect("/profile");
                         } else {
                             res.render("login", {
-                                err: "Uh oh! you have failed to log in...",
+                                message: "Uh oh! you have failed to log in...",
                                 btn: "try again",
+                                href: "javascript://",
                             });
                         }
                     })
@@ -244,16 +263,18 @@ app.post("/login", (req, res) => {
                     });
             })
             .catch((err) => {
-                console.log("error in POST /login getPassByEmail():", err);
+                console.log("error in POST /login getUserDataByEmail():", err);
                 res.render("login", {
-                    err: "Uh oh! you have failed to log in...",
+                    message: "Uh oh! you have failed to log in...",
                     btn: "try again",
+                    href: "javascript://",
                 });
             });
     } else {
         res.render("login", {
-            err: "make sure your form is complete!",
+            message: "these two fields are mandatory!",
             btn: "try again",
+            href: "javascript://",
         });
     }
 });
@@ -264,7 +285,20 @@ app.get("/profile", (req, res) => {
         if (profiled) {
             res.redirect("/petition");
         } else {
-            res.render("profile", {});
+            db.getProfile(userId)
+                .then(({ rows }) => {
+                    // console.log("rows", rows);
+                    if (rows.length == 0) {
+                        res.render("profile", {});
+                    } else {
+                        // console.log("user has a profile!");
+                        req.session.profiled = true;
+                        res.redirect("/petition");
+                    }
+                })
+                .catch((err) => {
+                    console.log("error in GET /profile getProfile()", err);
+                });
         }
     } else {
         res.redirect("/register");
@@ -274,7 +308,7 @@ app.get("/profile", (req, res) => {
 app.post("/profile", (req, res) => {
     const { age, city, url } = req.body;
     const { userId } = req.session;
-    console.log(age, city, url);
+    // console.log(age, city, url);
     db.addProfile(age, city, url, userId)
         .then((results) => {
             console.log("a new profile was added!");
@@ -287,6 +321,155 @@ app.post("/profile", (req, res) => {
         });
 });
 
-app.listen(process.env.PORT || 8080, () =>
-    console.log("petition SERVER at 8080...")
-);
+app.get("/profile-update", (req, res) => {
+    const { userId, profiled } = req.session;
+    if (userId) {
+        if (profiled) {
+            db.getProfile(userId).then(({ rows }) => {
+                req.session.userEmail = rows[0].email;
+                res.render("update", {
+                    rows,
+                });
+            });
+        } else {
+            res.redirect("/profile");
+        }
+    } else {
+        res.redirect("/register");
+    }
+});
+
+app.post("/profile-update", (req, res) => {
+    const { firstName, lastName, email, password, age, city, url } = req.body;
+    const { userId, userEmail } = req.session;
+    if (firstName !== "" && lastName !== "" && email !== "") {
+        //existing email validation
+
+        db.getUserDataByEmail(email)
+            .then(({ rows }) => {
+                if (rows.length === 0 || rows[0].email === userEmail) {
+                    console.log("email is good to use!");
+                    db.updateUserWithoutPW(firstName, lastName, email, userId)
+                        .then((results) => {
+                            if (password) {
+                                hash(password)
+                                    .then((hashedPass) => {
+                                        // console.log("hashedPw", hashedPass);
+                                        db.updateUserPassword(
+                                            hashedPass,
+                                            userId
+                                        )
+                                            .then(() => {
+                                                // console.log(
+                                                //     "user has changed password!"
+                                                // );
+                                            }) //end of updateUserPassword()
+                                            .catch((err) => {
+                                                console.log(
+                                                    "error in POST /profile-update updateUserPassword()",
+                                                    err
+                                                );
+                                                res.send(
+                                                    "<h1>Server error: user could NOT update password in db</h1>"
+                                                );
+                                            });
+                                    }) //end of hash()
+                                    .catch((err) => {
+                                        console.log(
+                                            "error is POST /profile-update hash()",
+                                            err
+                                        );
+                                        res.send(
+                                            "<h1>Server error: your password could NOT be hashed</h1>"
+                                        );
+                                    });
+                            } //end of if password
+                            ////// update rest of profile fields //////
+                            db.upsertProfile(age, city, url, userId)
+                                .then(() => {
+                                    //
+                                    // console.log(
+                                    //     "successful update other fields"
+                                    // );
+                                })
+                                .catch((err) => {
+                                    console.log(
+                                        "error in POST /profile-update upsertUser()",
+                                        err
+                                    );
+                                    res.send(
+                                        "<h1>Server error: user could NOT update other fields in db</h1>"
+                                    );
+                                });
+                            res.render("msg", {
+                                message:
+                                    "your profile was successfully updated",
+                                btn: "continue",
+                                href: "/petition",
+                            });
+                        })
+                        .catch((err) => {
+                            console.log(
+                                "error in POST /profile-update updateUserWithoutPW()",
+                                err
+                            );
+                            res.send(
+                                "<h1>Server error: user profile could NOT be updates in db</h1>"
+                            );
+                        });
+                } else {
+                    //of if block (email is free)
+                    // console.log("email has been already used");
+                    res.render("update", {
+                        message: "this email is already in use",
+                        btn: "try again",
+                        href: "/profile-update",
+                    });
+                }
+            }) //end of getUserDataByEmail()
+            .catch((err) => {
+                console.log("error is POST /profile-update checkEmail", err);
+                res.send(
+                    "<h1>Server error: your email could NOT be verified</h1>"
+                );
+            });
+    } else {
+        //of if block (firstname, lastname, email, password)
+        // console.log("missing fields");
+        res.render("update", {
+            message: "you cannot leave mandatory fields empty!",
+            btn: "try again",
+            href: "/profile-update",
+        });
+    } //close else for empty fields
+});
+
+app.get("/logout", (req, res) => {
+    req.session = null;
+    res.redirect("/login");
+});
+app.get("/delete-signeture", (req, res) => {
+    //
+    const { userId } = req.session;
+    db.deleteSigneture(userId)
+        .then(() => {
+            console.log("signeture deleted!");
+            req.session.signed = null;
+            // res.redirect("/petition");
+            res.render("msg", {
+                message: "your signeture was deleted",
+                btn: "continue",
+                // href: "javascript://",
+                href: "/petition",
+            });
+        })
+        .catch((err) => {
+            console.log("error in deleteSigneture()", err);
+        });
+});
+
+if (require.main == module) {
+    app.listen(process.env.PORT || 8080, () =>
+        console.log("petition SERVER at 8080...")
+    );
+}
