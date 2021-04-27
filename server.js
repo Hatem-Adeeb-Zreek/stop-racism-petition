@@ -1,5 +1,5 @@
 const express = require("express");
-const app = express();
+const app = (exports.app = express());
 const db = require("./db");
 const hb = require("express-handlebars");
 const cookieSession = require("cookie-session");
@@ -45,93 +45,6 @@ app.use(express.static("public"));
 //~~~~ ROUTES
 app.get("/", (req, res) => {
     res.redirect("/register");
-});
-
-app.get("/petition", (req, res) => {
-    const { userId } = req.session;
-    if (userId) {
-        db.getSigneture(userId)
-            .then((results) => {
-                if (results.rows.length != 0) {
-                    req.session.signed = true;
-                    res.redirect("/thankyou");
-                } else {
-                    db.getCurrentSign(userId).then(({ rows }) => {
-                        res.render("petition", {
-                            rows,
-                        });
-                    });
-                }
-            })
-            .catch((err) => {
-                console.log("error in GET /petition getSigneture()", err);
-            });
-    } else {
-        res.redirect("/register");
-    }
-});
-
-app.post("/petition", (req, res) => {
-    const { userId } = req.session;
-    const { signeture } = req.body;
-    if (signeture !== "") {
-        db.addSigneture(userId, signeture)
-            .then((results) => {
-                req.session.signed = true;
-                res.redirect("/thankyou");
-            })
-            .catch((err) => {
-                console.log("error in POST /petition addSign()", err);
-            });
-    } else {
-        res.render("petition", {
-            err:
-                "Oops! Looks like you still haven't signed my petition. You need to use the mouse to make your signature...",
-            btn: "try again",
-            href: "javascript://",
-        });
-    }
-});
-app.get("/thankyou", (req, res) => {
-    const { signed, userId } = req.session;
-    if (signed) {
-        db.countSigns().then((counts) => {
-            const numberOfSigns = counts.rows[0].count;
-            db.getSigneture(userId).then((results) => {
-                const signeture = results.rows[0].signeture;
-                db.getCurrentSign(userId).then(({ rows }) => {
-                    res.render("thankyou", {
-                        rows,
-                        signeture,
-                        numberOfSigns,
-                    });
-                });
-            });
-        });
-    } else {
-        res.redirect("/petition");
-    }
-});
-
-app.get("/signslist", (req, res) => {
-    const { signed, userId } = req.session;
-    if (userId) {
-        if (signed) {
-            db.getSigns()
-                .then(({ rows }) => {
-                    res.render("signslist", {
-                        rows,
-                    });
-                })
-                .catch((err) => {
-                    console.log("error in /signslist", err);
-                });
-        } else {
-            res.redirect("/petition");
-        }
-    } else {
-        res.redirect("/register");
-    }
 });
 
 app.get("/register", (req, res) => {
@@ -225,7 +138,6 @@ app.get("/login", (req, res) => {
 
 app.post("/login", (req, res) => {
     const { email, password } = req.body;
-    // console.log("user input email: ", email, "user input password: ", password);
     if (email !== "" && password !== "") {
         db.getUserDataByEmail(email)
             .then((results) => {
@@ -276,6 +188,99 @@ app.post("/login", (req, res) => {
             btn: "try again",
             href: "javascript://",
         });
+    }
+});
+
+app.get("/petition", (req, res) => {
+    const { userId } = req.session;
+    if (userId) {
+        db.getSigneture(userId)
+            .then((results) => {
+                if (results.rows.length != 0) {
+                    req.session.signed = true;
+                    res.redirect("/thankyou");
+                } else {
+                    db.getCurrentSign(userId).then(({ rows }) => {
+                        res.render("petition", {
+                            rows,
+                        });
+                    });
+                }
+            })
+            .catch((err) => {
+                console.log("error in GET /petition getSigneture()", err);
+            });
+    } else {
+        res.redirect("/register");
+    }
+});
+
+app.post("/petition", (req, res) => {
+    const { userId } = req.session;
+    const { signeture } = req.body;
+    if (signeture != "") {
+        db.addSigneture(userId, signeture)
+            .then((results) => {
+                //set cookie
+                req.session.signed = true;
+                // console.log("user has finally signed!");
+                res.redirect("/thankyou");
+            })
+            .catch((err) => {
+                console.log("error in POST /petition addSigneture()", err);
+            });
+    } else {
+        res.render("petition", {
+            message:
+                "Oops! Looks like you still haven't signed my petition. You need to use the mouse to make your signature...",
+            btn: "try again",
+            href: "javascript://",
+        });
+    }
+});
+
+app.get("/thankyou", (req, res) => {
+    // console.log("req session at thankyou", req.session);
+    const { signed, userId } = req.session;
+    if (signed) {
+        db.countSigns().then((counts) => {
+            const numberOfSigns = counts.rows[0].count;
+            db.getSigneture(userId).then((results) => {
+                const signeture = results.rows[0].signeture;
+                db.getCurrentSign(userId).then(({ rows }) => {
+                    res.render("thankyou", {
+                        rows,
+                        signeture,
+                        numberOfSigns,
+                    });
+                });
+            });
+        });
+    } else {
+        res.redirect("/petition");
+    }
+});
+
+app.get("/signslist", (req, res) => {
+    const { signed, userId } = req.session;
+    if (userId) {
+        if (signed) {
+            db.getSigns()
+                .then(({ rows }) => {
+                    // console.log("rows", rows);
+                    res.render("signslist", {
+                        rows,
+                    });
+                })
+
+                .catch((err) => {
+                    console.log("error in /signslist", err);
+                });
+        } else {
+            res.redirect("/petition");
+        }
+    } else {
+        res.redirect("/register");
     }
 });
 
@@ -451,21 +456,25 @@ app.get("/logout", (req, res) => {
 app.get("/delete-signeture", (req, res) => {
     //
     const { userId } = req.session;
-    db.deleteSigneture(userId)
-        .then(() => {
-            console.log("signeture deleted!");
-            req.session.signed = null;
-            // res.redirect("/petition");
-            res.render("msg", {
-                message: "your signeture was deleted",
-                btn: "continue",
-                // href: "javascript://",
-                href: "/petition",
+    if (userId) {
+        db.deleteSigneture(userId)
+            .then(() => {
+                console.log("signeture deleted!");
+                req.session.signed = null;
+                // res.redirect("/petition");
+                res.render("msg", {
+                    message: "your signeture was deleted",
+                    btn: "continue",
+                    // href: "javascript://",
+                    href: "/petition",
+                });
+            })
+            .catch((err) => {
+                console.log("error in deleteSigneture()", err);
             });
-        })
-        .catch((err) => {
-            console.log("error in deleteSigneture()", err);
-        });
+    } else {
+        res.redirect("/register");
+    }
 });
 
 if (require.main == module) {
