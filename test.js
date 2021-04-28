@@ -36,19 +36,6 @@ test("user login: GET /petition redirects to /thankyou", () => {
         });
 });
 
-// test("user login, signed: GET /petition redirects to /thankyou", () => {
-//     cookieSession.mockSessionOnce({
-//         userId: 1,
-//         signed: true,
-//     });
-//     return supertest(app)
-//         .get("/petition")
-//         .then((res) => {
-//             expect(res.headers.location).toBe("/thankyou");
-//             expect(res.statusCode).toBe(302);
-//         });
-// });
-
 test("user login, not signed: GET /thankyou redirects to /petition", () => {
     cookieSession.mockSessionOnce({
         userId: 1,

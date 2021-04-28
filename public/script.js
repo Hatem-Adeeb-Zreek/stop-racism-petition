@@ -9,8 +9,8 @@ if (canvas) {
     const context = canvas.getContext("2d");
     const signCanvas = document.querySelector('input[name="signeture"]');
     canvas.addEventListener("mousedown", (event) => {
-        xAxis = event.clientX - canvas.offsetLeft;
-        yAxis = event.clientY - canvas.offsetTop;
+        xAxis = event.pageX - canvas.offsetLeft;
+        yAxis = event.pageY - canvas.offsetTop;
 
         drawStart();
 
@@ -20,8 +20,8 @@ if (canvas) {
     });
 
     canvas.addEventListener("mousemove", (event) => {
-        xAxis = event.clientX - canvas.offsetLeft;
-        yAxis = event.clientY - canvas.offsetTop;
+        xAxis = event.pageX - canvas.offsetLeft;
+        yAxis = event.pageY - canvas.offsetTop;
     });
 
     canvas.addEventListener("mouseup", () => {
@@ -48,7 +48,6 @@ if (canvas) {
     };
 }
 
-//visibility of modals
 modalBtn.on("click", () => {
     modal.fadeOut(500);
 });
