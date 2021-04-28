@@ -76,13 +76,27 @@ exports.getProfile = (userId) => {
     );
 };
 
+exports.getSignsByCity = (city) => {
+    return db.query(
+        `
+    SELECT signetures.signeture, users.first_name, users.last_name, user_profiles.age, user_profiles.city, user_profiles.url
+    FROM signetures
+    JOIN users
+    ON users.id = signetures.user_id
+    LEFT OUTER JOIN user_profiles
+    ON users.id = user_profiles.user_id
+    WHERE user_profiles.city = $1;    
+    `,
+        [city]
+    );
+};
+
 exports.updateUserWithoutPW = (firstName, lastName, email, userId) => {
     return db.query(
         `
     UPDATE users 
     SET first_name = $1, last_name=$2, email=$3
-    WHERE id = $4
-    RETURNING *
+    WHERE id = $4  
     `,
         [firstName, lastName, email, userId]
     );
@@ -121,13 +135,3 @@ exports.deleteSigneture = (userId) => {
         [userId]
     );
 };
-
-/*
-exports.getTimestamp = () => {
-    let date = db.query(`SELECT EXTRACT (DAY FROM created) FROM signatures`);
-    date += db.query(`SELECT EXTRACT (MONTH FROM created) FROM signatures`);
-    date += db.query(`SELECT EXTRACT (YEAR FROM created) FROM signatures`);
-    return date;
-};
-// return db.query(`SELECT EXTRACT (DAY FROM created) FROM signatures`);
-*/

@@ -1,0 +1,22 @@
+<div class="container">
+    
+    <div>
+        <div>
+            <h1>Signers from {{city}}:</h1>
+            {{#rows}}
+                
+                <h2>
+                    {{#if url}}
+                        <a  href="{{url}}" target="_blank">{{first_name}} {{last_name}}</a>
+                    {{else}}
+                        <span>{{first_name}} {{last_name}}</span>
+                    {{/if}}
+
+                    {{#if age}}
+                        <span>| Age: {{age}} |</span>                    
+                    {{/if}}                    
+                </h2>
+            {{/rows}}
+        </div>
+    </div>
+</div>
